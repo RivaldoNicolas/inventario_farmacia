@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/usuario_dao.dart';
+import 'package:inventario_farmacia/models/usuario.dart';
 import 'package:inventario_farmacia/screens/dashboard_screen.dart';
 
 // Convertimos LoginScreen a un StatefulWidget para manejar el estado del formulario.
@@ -43,7 +44,9 @@ class _LoginScreenState extends State<LoginScreen> {
           // Usamos pushReplacement para que el usuario no pueda volver atrás a la pantalla de login.
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            MaterialPageRoute(
+              builder: (context) => DashboardScreen(usuario: usuario),
+            ),
           );
         } else {
           // Contraseña incorrecta.
