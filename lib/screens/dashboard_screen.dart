@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/models/usuario.dart';
 import 'package:inventario_farmacia/screens/agregar_medicamento_screen.dart';
 import 'package:inventario_farmacia/screens/inventario_screen.dart';
+import 'package:inventario_farmacia/screens/login_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final Usuario usuario;
@@ -17,7 +18,11 @@ class DashboardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              // Lógica para cerrar sesión (a implementar)
+              // Navega a la pantalla de login y elimina todas las rutas anteriores.
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (Route<dynamic> route) => false,
+              );
             },
           ),
         ],
@@ -53,16 +58,19 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const AgregarMedicamentoScreen(),
-          ),
-        ),
-        tooltip: 'Agregar Medicamento',
-        child: const Icon(Icons.add),
-      ),
+      // Solo muestra el botón de agregar si el usuario es administrador.
+      floatingActionButton: usuario.rol == 'administrador'
+          ? FloatingActionButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AgregarMedicamentoScreen(),
+                ),
+              ),
+              tooltip: 'Agregar Medicamento',
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }
