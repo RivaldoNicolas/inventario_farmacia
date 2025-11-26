@@ -35,6 +35,18 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # Base de datos local
+  sqflite: ^2.3.3+1
+  sqflite_common_ffi: ^2.3.3+1 # Para usar sqflite en plataformas de escritorio (Windows, Linux, macOS)
+  path: ^1.9.0
+
+  # Gestor de estado
+  provider: ^6.1.2
+
+  # Para hacer el hash de contraseñas
+  crypto: ^3.0.3
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
