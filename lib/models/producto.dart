@@ -1,10 +1,9 @@
-/// La clase `Producto` representa el catálogo maestro de medicamentos.
-/// Contiene la información general de un medicamento que no cambia con cada lote.
+/// La clase `Producto` representa el catálogo de medicamentos.
 class Producto {
   final int? id;
   final String nombre;
   final String laboratorio;
-  final String? codigo; // Código de barras o SKU. Es opcional pero muy útil.
+  final String? codigo; //Codigo de Barra
   final String? descripcion;
 
   Producto({

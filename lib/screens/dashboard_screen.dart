@@ -3,6 +3,7 @@ import 'package:inventario_farmacia/models/usuario.dart';
 import 'package:inventario_farmacia/screens/agregar_medicamento_screen.dart';
 import 'package:inventario_farmacia/screens/inventario_screen.dart';
 import 'package:inventario_farmacia/screens/login_screen.dart';
+import 'package:inventario_farmacia/widgets/boton_principal.dart';
 
 class DashboardScreen extends StatelessWidget {
   final Usuario usuario;
@@ -42,17 +43,13 @@ class DashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             // Botón para ver el inventario
-            ElevatedButton.icon(
-              icon: const Icon(Icons.inventory),
-              label: const Text('Ver Inventario'),
+            BotonPrincipal(
+              texto: 'Ver Inventario',
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const InventarioScreen(),
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
               ),
             ),
           ],

@@ -6,7 +6,7 @@ class Lote {
   int cantidad; // La cantidad de este lote específico. Es mutable.
   final DateTime fechaIngreso;
   final DateTime fechaVencimiento;
-  final double? precioCompra; // Opcional, pero útil para reportes.
+  final double? precioCompra;
 
   Lote({
     this.id,

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/lote_dao.dart';
 import 'package:inventario_farmacia/data/producto_dao.dart';
 import 'package:inventario_farmacia/models/producto.dart';
-import 'package:inventario_farmacia/screens/detalle_producto_screen.dart';
+import 'package:inventario_farmacia/screens/detalle_producto_screen.dart'; // Verificando que la ruta sea correcta
+import 'package:inventario_farmacia/widgets/card_inventario.dart';
 
 // ViewModel para combinar la información del producto y su stock total.
 class ProductoInventario {
@@ -102,35 +103,18 @@ class _InventarioScreenState extends State<InventarioScreen> {
                     itemCount: _inventarioFiltrado.length,
                     itemBuilder: (context, index) {
                       final item = _inventarioFiltrado[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: InkWell(
-                          // Hacemos la tarjeta clicable
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DetalleProductoScreen(
-                                  producto: item.producto,
-                                ),
-                              ),
-                            );
-                          },
-                          child: ListTile(
-                            title: Text(item.producto.nombre),
-                            subtitle: Text(item.producto.laboratorio),
-                            trailing: Text(
-                              'Stock: ${item.stockTotal}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                      return CardInventario(
+                        item: item,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetalleProductoScreen(
+                                producto: item.producto,
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       );
                     },
                   ),

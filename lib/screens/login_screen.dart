@@ -3,6 +3,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/usuario_dao.dart';
 import 'package:inventario_farmacia/models/usuario.dart';
+import 'package:inventario_farmacia/widgets/boton_principal.dart';
 import 'package:inventario_farmacia/screens/dashboard_screen.dart';
 
 // Convertimos LoginScreen a un StatefulWidget para manejar el estado del formulario.
@@ -208,27 +209,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 24),
 
                       // Botón Iniciar Sesión
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: _login, // Llamamos a tu método _login
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal[600],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 2,
-                          ),
-                          child: const Text(
-                            'Iniciar Sesión',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
+                      BotonPrincipal(
+                        texto: 'Iniciar Sesión',
+                        onPressed: _login,
                       ),
                     ],
                   ),

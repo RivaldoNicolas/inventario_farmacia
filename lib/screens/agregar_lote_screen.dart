@@ -1,33 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/lote_dao.dart';
-import 'package:inventario_farmacia/data/producto_dao.dart';
 import 'package:inventario_farmacia/models/lote.dart';
-import 'package:inventario_farmacia/models/producto.dart';
-import 'package:inventario_farmacia/widgets/boton_principal.dart';
 
-class AgregarMedicamentoScreen extends StatefulWidget {
-  const AgregarMedicamentoScreen({super.key});
+import '../widgets/boton_principal.dart';
+
+class AgregarLoteScreen extends StatefulWidget {
+  final int productoId;
+
+  const AgregarLoteScreen({super.key, required this.productoId});
 
   @override
-  State<AgregarMedicamentoScreen> createState() =>
-      _AgregarMedicamentoScreenState();
+  State<AgregarLoteScreen> createState() => _AgregarLoteScreenState();
 }
 
-class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
+class _AgregarLoteScreenState extends State<AgregarLoteScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Controladores para los campos del formulario
-  final _nombreController = TextEditingController();
-  final _laboratorioController = TextEditingController();
-  final _codigoController = TextEditingController();
   final _cantidadController = TextEditingController();
   final _precioCompraController = TextEditingController();
 
   // Variable para guardar la fecha de vencimiento seleccionada
   DateTime? _fechaVencimiento;
 
-  // Instancias de nuestros DAOs
-  final _productoDao = ProductoDao();
+  // Instancia de nuestro DAO
   final _loteDao = LoteDao();
 
   // Método para mostrar el selector de fecha
@@ -45,8 +41,8 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
     }
   }
 
-  // Método para guardar el nuevo producto y su lote
-  void _guardarMedicamento() async {
+  // Método para guardar el nuevo lote
+  void _guardarLote() async {
     // Validamos el formulario
     if (_formKey.currentState!.validate()) {
       if (_fechaVencimiento == null) {
@@ -59,21 +55,9 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
         return;
       }
 
-      // 1. Crear el objeto Producto (del catálogo)
-      final producto = Producto(
-        nombre: _nombreController.text,
-        laboratorio: _laboratorioController.text,
-        codigo: _codigoController.text.isNotEmpty
-            ? _codigoController.text
-            : null,
-      );
-
-      // 2. Insertar el producto y obtener su ID
-      final productoId = await _productoDao.insertar(producto);
-
-      // 3. Crear el objeto Lote (el stock inicial)
+      // 1. Crear el objeto Lote
       final lote = Lote(
-        productoId: productoId,
+        productoId: widget.productoId,
         cantidad: int.parse(_cantidadController.text),
         fechaIngreso: DateTime.now(),
         fechaVencimiento: _fechaVencimiento!,
@@ -82,24 +66,27 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
             : null,
       );
 
-      // 4. Insertar el lote
+      // 2. Insertar el lote
       await _loteDao.insertar(lote);
 
-      // 5. Mostrar confirmación y volver a la pantalla anterior
+      // 3. Mostrar confirmación y volver a la pantalla anterior
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Medicamento guardado con éxito.'),
+          content: Text('Nuevo lote guardado con éxito.'),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context);
+      Navigator.pop(
+        context,
+        true,
+      ); // Devolvemos 'true' para indicar que se actualizó
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Agregar Nuevo Medicamento')),
+      appBar: AppBar(title: const Text('Agregar Nuevo Lote')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -108,29 +95,14 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
-                controller: _nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del Medicamento',
-                ),
-                validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _laboratorioController,
-                decoration: const InputDecoration(labelText: 'Laboratorio'),
-                validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
                 controller: _cantidadController,
                 decoration: const InputDecoration(
-                  labelText: 'Cantidad Inicial (Stock)',
+                  labelText: 'Cantidad del Lote',
                 ),
                 keyboardType: TextInputType.number,
                 validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
               ),
               const SizedBox(height: 16),
-              // --- Selector de Fecha ---
               ListTile(
                 title: Text(
                   _fechaVencimiento == null
@@ -143,13 +115,6 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
               const Divider(),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _codigoController,
-                decoration: const InputDecoration(
-                  labelText: 'Código de Barras (Opcional)',
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
                 controller: _precioCompraController,
                 decoration: const InputDecoration(
                   labelText: 'Precio de Compra (Opcional)',
@@ -157,10 +122,7 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 32),
-              BotonPrincipal(
-                texto: 'Guardar Medicamento',
-                onPressed: _guardarMedicamento,
-              ),
+              BotonPrincipal(texto: 'Guardar Lote', onPressed: _guardarLote),
             ],
           ),
         ),
