@@ -9,8 +9,15 @@ import 'package:inventario_farmacia/widgets/card_inventario.dart';
 class ProductoInventario {
   final Producto producto;
   final int stockTotal;
+  final bool tieneStockBajo;
+  final bool tieneLotesProximosAVencer;
 
-  ProductoInventario({required this.producto, required this.stockTotal});
+  ProductoInventario({
+    required this.producto,
+    required this.stockTotal,
+    this.tieneStockBajo = false,
+    this.tieneLotesProximosAVencer = false,
+  });
 }
 
 class InventarioScreen extends StatefulWidget {
@@ -40,8 +47,25 @@ class _InventarioScreenState extends State<InventarioScreen> {
       final lotes = await _loteDao.obtenerLotesPorProducto(producto.id!);
       // Suma las cantidades de todos los lotes para obtener el stock total.
       final stockTotal = lotes.fold<int>(0, (sum, lote) => sum + lote.cantidad);
+
+      // --- Lógica de Alertas ---
+      // 1. Alerta de Stock Bajo
+      final bool stockBajo =
+          producto.stockMinimo != null && stockTotal <= producto.stockMinimo!;
+
+      // 2. Alerta de Vencimiento Próximo (ej. 90 días)
+      final fechaLimite = DateTime.now().add(const Duration(days: 90));
+      final bool vencimientoProximo = lotes.any(
+        (lote) => lote.fechaVencimiento.isBefore(fechaLimite),
+      );
+
       inventarioCargado.add(
-        ProductoInventario(producto: producto, stockTotal: stockTotal),
+        ProductoInventario(
+          producto: producto,
+          stockTotal: stockTotal,
+          tieneStockBajo: stockBajo,
+          tieneLotesProximosAVencer: vencimientoProximo,
+        ),
       );
     }
 

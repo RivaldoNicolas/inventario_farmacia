@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/lote_dao.dart';
+import 'package:inventario_farmacia/data/producto_dao.dart';
 import 'package:inventario_farmacia/models/lote.dart';
 import 'package:inventario_farmacia/models/producto.dart';
 import 'package:inventario_farmacia/screens/agregar_lote_screen.dart'; // Verificando que la ruta sea correcta
+import 'package:inventario_farmacia/screens/editar_producto_screen.dart';
+import 'package:inventario_farmacia/screens/inventario_screen.dart';
 
 class DetalleProductoScreen extends StatefulWidget {
   final Producto producto;
@@ -15,11 +18,14 @@ class DetalleProductoScreen extends StatefulWidget {
 
 class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
   final _loteDao = LoteDao();
+  final _productoDao = ProductoDao();
+  late Producto _productoActual;
   late Future<List<Lote>> _lotesFuture;
 
   @override
   void initState() {
     super.initState();
+    _productoActual = widget.producto;
     _cargarLotes();
   }
 
@@ -49,6 +55,24 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     // Si `resultado` es true, significa que se guardó un lote y debemos recargar.
     if (resultado == true) {
       _cargarLotes();
+    }
+  }
+
+  void _navegarAEditarProducto() async {
+    final resultado = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditarProductoScreen(producto: _productoActual),
+      ),
+    );
+
+    if (resultado == true) {
+      // Si se guardaron cambios, recargamos la información del producto
+      final productoActualizado = await _productoDao.obtenerPorId(
+        _productoActual.id!,
+      );
+      setState(() => _productoActual = productoActualizado!);
+      _cargarLotes(); // También recargamos los lotes por si acaso
     }
   }
 
@@ -125,10 +149,129 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     _cargarLotes();
   }
 
+  void _mostrarDialogoEliminarProducto() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Eliminación'),
+        content: const Text(
+          '¿Está seguro de que desea eliminar este producto? Todos sus lotes asociados también serán eliminados. Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _productoDao.eliminar(_productoActual.id!);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Producto eliminado con éxito.'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              // Volvemos a la pantalla de inventario
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarDialogoEditarLote(Lote lote) {
+    final cantidadController = TextEditingController(
+      text: lote.cantidad.toString(),
+    );
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Editar Cantidad del Lote'),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: cantidadController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Nueva cantidad'),
+            validator: (v) =>
+                (v == null ||
+                    v.isEmpty ||
+                    int.tryParse(v) == null ||
+                    int.parse(v) < 0)
+                ? 'Ingrese un número válido'
+                : null,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                final nuevaCantidad = int.parse(cantidadController.text);
+                lote.cantidad = nuevaCantidad;
+                await _loteDao.actualizar(lote);
+                Navigator.pop(context);
+                _cargarLotes(); // Recargar
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarDialogoEliminarLote(Lote lote) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Lote'),
+        content: const Text('¿Está seguro de que desea eliminar este lote?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _loteDao.eliminar(lote.id!);
+              Navigator.pop(context);
+              _cargarLotes(); // Recargar
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.producto.nombre)),
+      appBar: AppBar(
+        title: Text(_productoActual.nombre),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: _navegarAEditarProducto,
+            tooltip: 'Editar Producto',
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_forever),
+            onPressed: _mostrarDialogoEliminarProducto,
+            tooltip: 'Eliminar Producto',
+          ),
+        ],
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -138,11 +281,11 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Laboratorio: ${widget.producto.laboratorio}',
+                  'Laboratorio: ${_productoActual.laboratorio}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                if (widget.producto.codigo != null)
-                  Text('Código: ${widget.producto.codigo}'),
+                if (_productoActual.codigo != null)
+                  Text('Código: ${_productoActual.codigo}'),
                 const SizedBox(height: 16),
                 Text(
                   'Lotes en Inventario:',
@@ -186,15 +329,38 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
                         subtitle: Text(
                           'Vence: ${lote.fechaVencimiento.day}/${lote.fechaVencimiento.month}/${lote.fechaVencimiento.year}',
                         ),
-                        trailing: ElevatedButton(
-                          onPressed: () => _mostrarDialogoSalida(lote),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal.shade300,
-                          ),
-                          child: const Text(
-                            'Salida',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () => _mostrarDialogoSalida(lote),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.teal.shade300,
+                              ),
+                              child: const Text(
+                                'Salida',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == 'editar')
+                                  _mostrarDialogoEditarLote(lote);
+                                if (value == 'eliminar')
+                                  _mostrarDialogoEliminarLote(lote);
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'editar',
+                                  child: Text('Editar'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'eliminar',
+                                  child: Text('Eliminar'),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     );

@@ -22,6 +22,7 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
   final _codigoController = TextEditingController();
   final _cantidadController = TextEditingController();
   final _precioCompraController = TextEditingController();
+  final _stockMinimoController = TextEditingController();
 
   // Variable para guardar la fecha de vencimiento seleccionada
   DateTime? _fechaVencimiento;
@@ -58,41 +59,54 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
         );
         return;
       }
+      try {
+        // 1. Crear el objeto Producto (del catálogo)
+        final producto = Producto(
+          nombre: _nombreController.text,
+          laboratorio: _laboratorioController.text,
+          codigo: _codigoController.text.isNotEmpty
+              ? _codigoController.text
+              : null,
+          stockMinimo: _stockMinimoController.text.isNotEmpty
+              ? int.parse(_stockMinimoController.text)
+              : null,
+        );
 
-      // 1. Crear el objeto Producto (del catálogo)
-      final producto = Producto(
-        nombre: _nombreController.text,
-        laboratorio: _laboratorioController.text,
-        codigo: _codigoController.text.isNotEmpty
-            ? _codigoController.text
-            : null,
-      );
+        // 2. Insertar el producto y obtener su ID
+        final productoId = await _productoDao.insertar(producto);
 
-      // 2. Insertar el producto y obtener su ID
-      final productoId = await _productoDao.insertar(producto);
+        // 3. Crear el objeto Lote (el stock inicial)
+        final lote = Lote(
+          productoId: productoId,
+          cantidad: int.parse(_cantidadController.text),
+          fechaIngreso: DateTime.now(),
+          fechaVencimiento: _fechaVencimiento!,
+          precioCompra: _precioCompraController.text.isNotEmpty
+              ? double.parse(_precioCompraController.text)
+              : null,
+        );
 
-      // 3. Crear el objeto Lote (el stock inicial)
-      final lote = Lote(
-        productoId: productoId,
-        cantidad: int.parse(_cantidadController.text),
-        fechaIngreso: DateTime.now(),
-        fechaVencimiento: _fechaVencimiento!,
-        precioCompra: _precioCompraController.text.isNotEmpty
-            ? double.parse(_precioCompraController.text)
-            : null,
-      );
+        // 4. Insertar el lote
+        await _loteDao.insertar(lote);
 
-      // 4. Insertar el lote
-      await _loteDao.insertar(lote);
-
-      // 5. Mostrar confirmación y volver a la pantalla anterior
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Medicamento guardado con éxito.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.pop(context);
+        // 5. Mostrar confirmación y volver a la pantalla anterior
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Medicamento guardado con éxito.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        // Si algo falla durante el guardado, mostramos el error.
+        print('Error al guardar medicamento: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al guardar: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -147,6 +161,14 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Código de Barras (Opcional)',
                 ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _stockMinimoController,
+                decoration: const InputDecoration(
+                  labelText: 'Stock Mínimo (Opcional)',
+                ),
+                keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
               TextFormField(

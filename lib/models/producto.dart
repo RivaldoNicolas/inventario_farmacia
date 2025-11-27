@@ -5,6 +5,7 @@ class Producto {
   final String laboratorio;
   final String? codigo; //Codigo de Barra
   final String? descripcion;
+  final int? stockMinimo;
 
   Producto({
     this.id,
@@ -12,6 +13,7 @@ class Producto {
     required this.laboratorio,
     this.codigo,
     this.descripcion,
+    this.stockMinimo,
   });
 
   /// Convierte un objeto Producto a un Map para la base de datos.
@@ -22,6 +24,7 @@ class Producto {
       'laboratorio': laboratorio,
       'codigo': codigo,
       'descripcion': descripcion,
+      'stockMinimo': stockMinimo,
     };
   }
 
@@ -33,6 +36,7 @@ class Producto {
       laboratorio: map['laboratorio'],
       codigo: map['codigo'],
       descripcion: map['descripcion'],
+      stockMinimo: map['stockMinimo'],
     );
   }
 }

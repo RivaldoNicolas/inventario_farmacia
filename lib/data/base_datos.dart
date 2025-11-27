@@ -25,14 +25,23 @@ class DatabaseHelper {
   // Método que inicializa la base de datos.
   Future<Database> _initDB() async {
     // Obtenemos la ruta donde se guardará el archivo de la base de datos.
-    String path = join(await getDatabasesPath(), 'farmacia_inventario.db');
+    String path = join(await getDatabasesPath(), 'farmacia_inventario_v2.db');
 
     // Abrimos la base de datos. Si no existe, `_createDB` se ejecutará.
     return await openDatabase(
       path,
-      version: 1, // La versión de la BD, útil para futuras migraciones.
+      version: 2, // ¡IMPORTANTE! Incrementamos la versión de la BD a 2.
       onCreate: _createDB,
+      onUpgrade: _onUpgrade, // Añadimos el manejador de actualizaciones.
     );
+  }
+
+  // Método que se ejecuta cuando la versión de la BD cambia.
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Si la versión antigua es menor que 2, añadimos la nueva columna.
+      await db.execute('ALTER TABLE productos ADD COLUMN stockMinimo INTEGER');
+    }
   }
 
   // Método que se ejecuta solo la primera vez que se crea la base de datos.
@@ -55,7 +64,8 @@ class DatabaseHelper {
         nombre TEXT NOT NULL,
         laboratorio TEXT NOT NULL,
         codigo TEXT,
-        descripcion TEXT
+        descripcion TEXT,
+        stockMinimo INTEGER
       )
     ''');
 

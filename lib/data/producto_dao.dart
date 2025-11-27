@@ -20,6 +20,22 @@ class ProductoDao {
     });
   }
 
+  /// Obtiene un producto por su ID.
+  Future<Producto?> obtenerPorId(int id) async {
+    final db = await dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'productos',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isNotEmpty) {
+      return Producto.fromMap(maps.first);
+    } else {
+      return null;
+    }
+  }
+
   /// Actualiza un producto existente.
   Future<int> actualizar(Producto producto) async {
     final db = await dbHelper.database;
