@@ -17,6 +17,10 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
   }
 
+  // --- PROCEDIMIENTO DE EMERGENCIA PARA RESETEAR CONTRASEÑA DE ADMIN ---
+  // Si el admin olvida su contraseña, cambia esta variable a 'true' y ejecuta la app una vez.
+  const bool forzarReseteoAdmin = false;
+
   // --- LÓGICA PARA CREAR EL USUARIO ADMIN ---
   // Esta lógica crea el usuario la primera vez que la app se ejecuta en un dispositivo.
   final usuarioDao = UsuarioDao();
@@ -24,7 +28,7 @@ void main() async {
     'admin@farmacia.com',
   );
 
-  if (adminExiste == null) {
+  if (adminExiste == null || forzarReseteoAdmin) {
     // Si el admin no existe, lo creamos.
     final passwordBytes = utf8.encode('admin123');
     final passwordHash = sha256.convert(passwordBytes);
@@ -34,11 +38,23 @@ void main() async {
       passwordHash: passwordHash.toString(),
       rol: 'administrador',
     );
-    await usuarioDao.insertar(nuevoAdmin);
-    // Este print te ayudará a saber cuándo se crea el usuario en la consola.
-    print(
-      '>>> Usuario administrador creado por primera vez en este dispositivo.',
-    );
+
+    if (adminExiste == null) {
+      await usuarioDao.insertar(nuevoAdmin);
+      print('>>> Usuario administrador creado por primera vez.');
+    } else {
+      // Si el admin ya existe pero forzamos el reseteo, lo actualizamos.
+      final usuarioParaActualizar = Usuario(
+        id: adminExiste.id, // Usamos el ID existente
+        nombreUsuario: nuevoAdmin.nombreUsuario,
+        passwordHash: nuevoAdmin.passwordHash,
+        rol: nuevoAdmin.rol,
+      );
+      await usuarioDao.actualizar(usuarioParaActualizar);
+      print(
+        '>>> CONTRASEÑA DE ADMINISTRADOR RESETEADA A "admin123" POR EMERGENCIA.',
+      );
+    }
   }
 
   runApp(const MyApp()); // El punto de entrada de la aplicación

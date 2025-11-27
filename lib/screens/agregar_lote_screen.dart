@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/lote_dao.dart';
+import 'package:inventario_farmacia/data/movimiento_dao.dart';
+import 'package:inventario_farmacia/models/movimiento.dart';
 import 'package:inventario_farmacia/models/lote.dart';
 
 import '../widgets/boton_principal.dart';
@@ -25,6 +27,7 @@ class _AgregarLoteScreenState extends State<AgregarLoteScreen> {
 
   // Instancia de nuestro DAO
   final _loteDao = LoteDao();
+  final _movimientoDao = MovimientoDao();
 
   // Método para mostrar el selector de fecha
   Future<void> _seleccionarFecha(BuildContext context) async {
@@ -68,6 +71,16 @@ class _AgregarLoteScreenState extends State<AgregarLoteScreen> {
 
       // 2. Insertar el lote
       await _loteDao.insertar(lote);
+
+      // 3. REGISTRAR MOVIMIENTO DE ENTRADA
+      final movimiento = Movimiento(
+        productoId: widget.productoId,
+        tipo: 'Entrada de Lote',
+        cantidad: lote.cantidad,
+        fecha: DateTime.now(),
+        motivo: 'Recepción de nuevo lote',
+      );
+      await _movimientoDao.insertar(movimiento);
 
       // 3. Mostrar confirmación y volver a la pantalla anterior
       ScaffoldMessenger.of(context).showSnackBar(

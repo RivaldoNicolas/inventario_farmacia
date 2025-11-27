@@ -26,4 +26,32 @@ class UsuarioDao {
       return null;
     }
   }
+
+  /// Obtiene todos los usuarios de la base de datos.
+  Future<List<Usuario>> obtenerTodos() async {
+    final db = await dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'usuarios',
+      orderBy: 'nombreUsuario ASC',
+    );
+
+    return List.generate(maps.length, (i) => Usuario.fromMap(maps[i]));
+  }
+
+  /// Actualiza un usuario existente.
+  Future<int> actualizar(Usuario usuario) async {
+    final db = await dbHelper.database;
+    return await db.update(
+      'usuarios',
+      usuario.toMap(),
+      where: 'id = ?',
+      whereArgs: [usuario.id],
+    );
+  }
+
+  /// Elimina un usuario por su ID.
+  Future<int> eliminar(int id) async {
+    final db = await dbHelper.database;
+    return await db.delete('usuarios', where: 'id = ?', whereArgs: [id]);
+  }
 }

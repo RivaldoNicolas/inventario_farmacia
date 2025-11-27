@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/lote_dao.dart';
+import 'package:inventario_farmacia/data/movimiento_dao.dart';
 import 'package:inventario_farmacia/data/producto_dao.dart';
 import 'package:inventario_farmacia/models/lote.dart';
 import 'package:inventario_farmacia/models/producto.dart';
+import 'package:inventario_farmacia/models/movimiento.dart';
 import 'package:inventario_farmacia/screens/agregar_lote_screen.dart'; // Verificando que la ruta sea correcta
 import 'package:inventario_farmacia/screens/editar_producto_screen.dart';
+import 'package:inventario_farmacia/screens/historial_movimientos_screen.dart';
 import 'package:inventario_farmacia/screens/inventario_screen.dart';
 
 class DetalleProductoScreen extends StatefulWidget {
@@ -19,6 +22,7 @@ class DetalleProductoScreen extends StatefulWidget {
 class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
   final _loteDao = LoteDao();
   final _productoDao = ProductoDao();
+  final _movimientoDao = MovimientoDao();
   late Producto _productoActual;
   late Future<List<Lote>> _lotesFuture;
 
@@ -74,6 +78,18 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
       setState(() => _productoActual = productoActualizado!);
       _cargarLotes(); // También recargamos los lotes por si acaso
     }
+  }
+
+  void _navegarAHistorial() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HistorialMovimientosScreen(
+          productoId: _productoActual.id!,
+          productoNombre: _productoActual.nombre,
+        ),
+      ),
+    );
   }
 
   void _mostrarDialogoSalida(Lote lote) {
@@ -137,6 +153,16 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
       // Si el stock del lote llega a 0, lo eliminamos.
       await _loteDao.eliminar(lote.id!);
     }
+
+    // REGISTRAR MOVIMIENTO DE SALIDA
+    final movimiento = Movimiento(
+      productoId: _productoActual.id!,
+      tipo: 'Salida por Venta/Uso',
+      cantidad: cantidadSalida * -1, // En negativo para indicar salida
+      fecha: DateTime.now(),
+      motivo: 'Venta o uso regular',
+    );
+    await _movimientoDao.insertar(movimiento);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -215,7 +241,18 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
           ElevatedButton(
             onPressed: () async {
               if (formKey.currentState!.validate()) {
+                final cantidadAnterior = lote.cantidad;
                 final nuevaCantidad = int.parse(cantidadController.text);
+
+                // REGISTRAR MOVIMIENTO DE AJUSTE
+                final movimiento = Movimiento(
+                  productoId: _productoActual.id!,
+                  tipo: 'Ajuste Manual',
+                  cantidad: nuevaCantidad - cantidadAnterior, // La diferencia
+                  fecha: DateTime.now(),
+                  motivo: 'Corrección de inventario',
+                );
+                await _movimientoDao.insertar(movimiento);
                 lote.cantidad = nuevaCantidad;
                 await _loteDao.actualizar(lote);
                 Navigator.pop(context);
@@ -243,6 +280,16 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
           ElevatedButton(
             onPressed: () async {
               await _loteDao.eliminar(lote.id!);
+
+              // REGISTRAR MOVIMIENTO DE BAJA
+              final movimiento = Movimiento(
+                productoId: _productoActual.id!,
+                tipo: 'Baja de Lote',
+                cantidad: lote.cantidad * -1, // En negativo
+                fecha: DateTime.now(),
+                motivo: 'Eliminación completa del lote ID: ${lote.id}',
+              );
+              await _movimientoDao.insertar(movimiento);
               Navigator.pop(context);
               _cargarLotes(); // Recargar
             },
@@ -260,6 +307,11 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
       appBar: AppBar(
         title: Text(_productoActual.nombre),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: _navegarAHistorial,
+            tooltip: 'Ver Historial',
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: _navegarAEditarProducto,

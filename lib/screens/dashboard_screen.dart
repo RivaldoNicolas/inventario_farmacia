@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/lote_dao.dart';
 import 'package:inventario_farmacia/data/producto_dao.dart';
 import 'package:inventario_farmacia/models/lote.dart';
+import 'package:inventario_farmacia/models/inventario_filtro.dart';
 import 'package:inventario_farmacia/models/usuario.dart';
 import 'package:inventario_farmacia/screens/agregar_medicamento_screen.dart';
+import 'package:inventario_farmacia/screens/crear_usuario_screen.dart';
+import 'package:inventario_farmacia/screens/gestion_usuarios_screen.dart';
 import 'package:inventario_farmacia/screens/inventario_screen.dart';
 import 'package:inventario_farmacia/screens/login_screen.dart';
 import 'package:inventario_farmacia/widgets/boton_principal.dart';
@@ -60,8 +63,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _navegarAInventarioYRecargar() async {
     await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const InventarioScreen()),
+      context, // Navegación sin filtro
+      MaterialPageRoute(
+        builder: (context) => const InventarioScreen(filtroInicial: null),
+      ),
     );
     // Cuando volvemos del inventario, recargamos las alertas por si algo cambió.
     _cargarAlertas();
@@ -108,22 +113,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               children: [
                 Expanded(
-                  child: _buildAlertCard(
-                    context,
-                    'Stock Bajo',
-                    _productosConStockBajo,
-                    Icons.inventory_2_outlined,
-                    Colors.red,
+                  child: InkWell(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const InventarioScreen(
+                          filtroInicial: InventarioFiltro.stockBajo,
+                        ),
+                      ),
+                    ),
+                    child: _buildAlertCard(
+                      context,
+                      'Stock Bajo',
+                      _productosConStockBajo,
+                      Icons.inventory_2_outlined,
+                      Colors.red,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: _buildAlertCard(
-                    context,
-                    'Próximos a Vencer',
-                    _lotesProximosAVencer,
-                    Icons.warning_amber_rounded,
-                    Colors.orange,
+                  child: InkWell(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const InventarioScreen(
+                          filtroInicial: InventarioFiltro.proximosAVencer,
+                        ),
+                      ),
+                    ),
+                    child: _buildAlertCard(
+                      context,
+                      'Próximos a Vencer',
+                      _lotesProximosAVencer,
+                      Icons.warning_amber_rounded,
+                      Colors.orange,
+                    ),
                   ),
                 ),
               ],
@@ -136,18 +161,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
               texto: 'Ver Inventario',
               onPressed: _navegarAInventarioYRecargar,
             ),
+
+            // --- SECCIÓN DE ADMINISTRACIÓN (SOLO VISIBLE PARA ADMINS) ---
+            if (widget.usuario.rol == 'administrador') ...[
+              const SizedBox(height: 32),
+              const Divider(),
+              const SizedBox(height: 16),
+              const Text(
+                'Administración',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.manage_accounts),
+                label: const Text('Gestionar Usuarios'),
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          GestionUsuariosScreen(adminId: widget.usuario.id!),
+                    ),
+                  );
+                  _cargarAlertas(); // Recargar alertas al volver
+                },
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                  foregroundColor: Colors.teal.shade700,
+                  side: BorderSide(color: Colors.teal.shade200),
+                ),
+              ),
+            ],
           ],
         ),
       ),
       // Solo muestra el botón de agregar si el usuario es administrador.
       floatingActionButton: widget.usuario.rol == 'administrador'
           ? FloatingActionButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AgregarMedicamentoScreen(),
-                ),
-              ),
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AgregarMedicamentoScreen(),
+                  ),
+                );
+                _cargarAlertas(); // Recargar alertas al volver
+              },
               tooltip: 'Agregar Medicamento',
               child: const Icon(Icons.add),
             )

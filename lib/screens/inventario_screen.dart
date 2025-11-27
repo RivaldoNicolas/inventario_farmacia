@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/lote_dao.dart';
 import 'package:inventario_farmacia/data/producto_dao.dart';
 import 'package:inventario_farmacia/models/producto.dart';
+import 'package:inventario_farmacia/models/inventario_filtro.dart';
 import 'package:inventario_farmacia/screens/detalle_producto_screen.dart'; // Verificando que la ruta sea correcta
 import 'package:inventario_farmacia/widgets/card_inventario.dart';
 
@@ -21,7 +22,9 @@ class ProductoInventario {
 }
 
 class InventarioScreen extends StatefulWidget {
-  const InventarioScreen({super.key});
+  final InventarioFiltro? filtroInicial;
+
+  const InventarioScreen({super.key, this.filtroInicial});
 
   @override
   State<InventarioScreen> createState() => _InventarioScreenState();
@@ -69,9 +72,24 @@ class _InventarioScreenState extends State<InventarioScreen> {
       );
     }
 
+    List<ProductoInventario> inventarioFiltradoInicial = inventarioCargado;
+    // Aplicamos el filtro inicial si viene del dashboard
+    if (widget.filtroInicial != null) {
+      if (widget.filtroInicial == InventarioFiltro.stockBajo) {
+        inventarioFiltradoInicial = inventarioCargado
+            .where((p) => p.tieneStockBajo)
+            .toList();
+      } else if (widget.filtroInicial == InventarioFiltro.proximosAVencer) {
+        inventarioFiltradoInicial = inventarioCargado
+            .where((p) => p.tieneLotesProximosAVencer)
+            .toList();
+      }
+    }
+
     setState(() {
       _inventarioCompleto = inventarioCargado;
-      _inventarioFiltrado = inventarioCargado;
+      // La lista que se muestra inicialmente ya está filtrada si es necesario
+      _inventarioFiltrado = inventarioFiltradoInicial;
     });
   }
 
@@ -80,8 +98,11 @@ class _InventarioScreenState extends State<InventarioScreen> {
     final listaFiltrada = _inventarioCompleto.where((item) {
       final nombre = item.producto.nombre.toLowerCase();
       final laboratorio = item.producto.laboratorio.toLowerCase();
+      final codigo = item.producto.codigo?.toLowerCase() ?? '';
       final busqueda = query.toLowerCase();
-      return nombre.contains(busqueda) || laboratorio.contains(busqueda);
+      return nombre.contains(busqueda) ||
+          laboratorio.contains(busqueda) ||
+          codigo.contains(busqueda);
     }).toList();
 
     setState(() {
@@ -102,7 +123,15 @@ class _InventarioScreenState extends State<InventarioScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Inventario de Medicamentos')),
+      appBar: AppBar(
+        title: Text(
+          widget.filtroInicial == null
+              ? 'Inventario General'
+              : widget.filtroInicial == InventarioFiltro.stockBajo
+              ? 'Productos con Stock Bajo'
+              : 'Lotes Próximos a Vencer',
+        ),
+      ),
       body: Column(
         children: [
           // --- Barra de Búsqueda ---
@@ -111,7 +140,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                labelText: 'Buscar por nombre o laboratorio',
+                labelText: 'Buscar por nombre, laboratorio o código',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -122,15 +151,21 @@ class _InventarioScreenState extends State<InventarioScreen> {
           // --- Lista de Medicamentos ---
           Expanded(
             child: _inventarioFiltrado.isEmpty
-                ? const Center(child: Text('No se encontraron resultados.'))
+                ? Center(
+                    child: Text(
+                      widget.filtroInicial == null
+                          ? 'No hay productos en el inventario.'
+                          : 'No se encontraron productos con esta alerta.',
+                    ),
+                  )
                 : ListView.builder(
                     itemCount: _inventarioFiltrado.length,
                     itemBuilder: (context, index) {
                       final item = _inventarioFiltrado[index];
                       return CardInventario(
                         item: item,
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => DetalleProductoScreen(
@@ -138,6 +173,8 @@ class _InventarioScreenState extends State<InventarioScreen> {
                               ),
                             ),
                           );
+                          // Recargar el inventario al volver de los detalles
+                          _cargarInventario();
                         },
                       );
                     },

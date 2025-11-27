@@ -30,7 +30,7 @@ class DatabaseHelper {
     // Abrimos la base de datos. Si no existe, `_createDB` se ejecutará.
     return await openDatabase(
       path,
-      version: 2, // ¡IMPORTANTE! Incrementamos la versión de la BD a 2.
+      version: 3, // ¡IMPORTANTE! Incrementamos la versión de la BD a 3.
       onCreate: _createDB,
       onUpgrade: _onUpgrade, // Añadimos el manejador de actualizaciones.
     );
@@ -39,8 +39,21 @@ class DatabaseHelper {
   // Método que se ejecuta cuando la versión de la BD cambia.
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      // Si la versión antigua es menor que 2, añadimos la nueva columna.
+      // Migración de v1 a v2
       await db.execute('ALTER TABLE productos ADD COLUMN stockMinimo INTEGER');
+    }
+    if (oldVersion < 3) {
+      // Migración de v2 a v3
+      await db.execute('''
+        CREATE TABLE movimientos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          productoId INTEGER NOT NULL,
+          tipo TEXT NOT NULL,
+          cantidad INTEGER NOT NULL,
+          fecha TEXT NOT NULL,
+          motivo TEXT
+        )
+      ''');
     }
   }
 
@@ -79,6 +92,18 @@ class DatabaseHelper {
         fechaVencimiento TEXT NOT NULL,
         precioCompra REAL,
         FOREIGN KEY (productoId) REFERENCES productos (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // Tabla para registrar todos los movimientos de inventario
+    await db.execute('''
+      CREATE TABLE movimientos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        productoId INTEGER NOT NULL,
+        tipo TEXT NOT NULL,
+        cantidad INTEGER NOT NULL,
+        fecha TEXT NOT NULL,
+        motivo TEXT
       )
     ''');
   }
