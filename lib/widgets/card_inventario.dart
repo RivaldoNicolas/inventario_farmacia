@@ -10,40 +10,107 @@ class CardInventario extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
-        child: ListTile(
-          leading: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        borderRadius: BorderRadius.circular(12),
+        child: IntrinsicHeight(
+          // Asegura que todos los hijos tengan la misma altura
+          child: Row(
+            crossAxisAlignment:
+                CrossAxisAlignment.stretch, // Estira los hijos verticalmente
             children: [
-              if (item.tieneLotesProximosAVencer)
-                const Icon(Icons.warning_amber_rounded, color: Colors.orange),
-              if (item.tieneStockBajo)
-                const Icon(Icons.inventory_2_outlined, color: Colors.red),
+              // --- Iconos de Alerta a la Izquierda ---
+              SizedBox(
+                width: 50,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (item.tieneLotesProximosAVencer)
+                      Icon(
+                        Icons.timer_off_outlined,
+                        color: Colors.red.shade700,
+                        size: 20,
+                      ),
+                    if (item.tieneLotesProximosAVencer && item.tieneStockBajo)
+                      const SizedBox(width: 4),
+                    if (item.tieneStockBajo)
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.orange.shade700,
+                        size: 20,
+                      ),
+                  ],
+                ),
+              ),
+              // --- Nombre y Laboratorio ---
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Centra verticalmente
+                    children: [
+                      Text(
+                        item.producto.nombre,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.producto.laboratorio,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // --- Indicador de Stock a la Derecha ---
+              _StockBadge(
+                stockTotal: item.stockTotal,
+                tieneStockBajo: item.tieneStockBajo,
+              ),
             ],
           ),
-          title: Text(item.producto.nombre),
-          subtitle: Text(item.producto.laboratorio),
-          trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: (item.tieneStockBajo || item.tieneLotesProximosAVencer)
-                  ? Colors.red.shade100
-                  : Colors.green.shade100,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'Stock: ${item.stockTotal}',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: (item.tieneStockBajo || item.tieneLotesProximosAVencer)
-                    ? Colors.red.shade800
-                    : Colors.green.shade800,
-              ),
-            ),
-          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StockBadge extends StatelessWidget {
+  final int stockTotal;
+  final bool tieneStockBajo;
+
+  const _StockBadge({required this.stockTotal, required this.tieneStockBajo});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color;
+    if (stockTotal <= 0) {
+      color = Colors.red.shade700;
+    } else if (tieneStockBajo) {
+      color = Colors.orange.shade700;
+    } else {
+      color = Colors.green.shade700;
+    }
+
+    return Container(
+      width: 80,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: const BorderRadius.horizontal(right: Radius.circular(12)),
+      ),
+      child: Center(
+        child: Text(
+          'Stock\n${stockTotal.toString()}',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: color, fontWeight: FontWeight.bold),
         ),
       ),
     );

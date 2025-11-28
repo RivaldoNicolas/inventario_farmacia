@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/lote_dao.dart';
-import 'package:inventario_farmacia/data/producto_dao.dart';
-import 'package:inventario_farmacia/models/lote.dart';
 import 'package:inventario_farmacia/models/inventario_filtro.dart';
-import 'package:inventario_farmacia/models/usuario.dart';
+import 'package:inventario_farmacia/models/usuario.dart'; // Asegúrate que la ruta sea correcta
 import 'package:inventario_farmacia/screens/agregar_medicamento_screen.dart';
-import 'package:inventario_farmacia/screens/crear_usuario_screen.dart';
-import 'package:inventario_farmacia/screens/gestion_usuarios_screen.dart';
 import 'package:inventario_farmacia/screens/inventario_screen.dart';
 import 'package:inventario_farmacia/screens/login_screen.dart';
-import 'package:inventario_farmacia/widgets/boton_principal.dart';
+import 'package:inventario_farmacia/screens/gestion_usuarios_screen.dart';
+import 'package:inventario_farmacia/widgets/accion_rapida_card.dart';
+import 'package:inventario_farmacia/widgets/alerta_dashboard_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Usuario usuario;
@@ -21,11 +19,9 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final _productoDao = ProductoDao();
-  final _loteDao = LoteDao();
-
-  int _productosConStockBajo = 0;
-  int _lotesProximosAVencer = 0;
+  final LoteDao _loteDao = LoteDao();
+  int _stockBajoCount = 0;
+  int _proximosAVencerCount = 0;
 
   @override
   void initState() {
@@ -34,52 +30,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _cargarAlertas() async {
-    final productos = await _productoDao.obtenerTodos();
-    int stockBajoCount = 0;
-    int vencimientoCount = 0;
-
-    final fechaLimite = DateTime.now().add(const Duration(days: 90));
-
-    for (var producto in productos) {
-      final lotes = await _loteDao.obtenerLotesPorProducto(producto.id!);
-      final stockTotal = lotes.fold<int>(0, (sum, lote) => sum + lote.cantidad);
-
-      // Contar stock bajo
-      if (producto.stockMinimo != null && stockTotal <= producto.stockMinimo!) {
-        stockBajoCount++;
-      }
-
-      // Contar lotes próximos a vencer
-      vencimientoCount += lotes
-          .where((lote) => lote.fechaVencimiento.isBefore(fechaLimite))
-          .length;
+    final stockBajo = await _loteDao.contarProductosConStockBajo();
+    final proximosAVencer = await _loteDao.contarProductosProximosAVencer(90);
+    if (mounted) {
+      setState(() {
+        _stockBajoCount = stockBajo;
+        _proximosAVencerCount = proximosAVencer;
+      });
     }
-
-    setState(() {
-      _productosConStockBajo = stockBajoCount;
-      _lotesProximosAVencer = vencimientoCount;
-    });
   }
 
-  void _navegarAInventarioYRecargar() async {
-    await Navigator.push(
-      context, // Navegación sin filtro
+  void _navegarAInventario([InventarioFiltro? filtro]) {
+    Navigator.push(
+      context,
       MaterialPageRoute(
-        builder: (context) => const InventarioScreen(filtroInicial: null),
+        builder: (context) => InventarioScreen(filtroInicial: filtro),
       ),
-    );
-    // Cuando volvemos del inventario, recargamos las alertas por si algo cambió.
-    _cargarAlertas();
+    ).then((_) => _cargarAlertas());
   }
 
   @override
   Widget build(BuildContext context) {
+    final esAdmin = widget.usuario.rol == 'administrador';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Panel Principal'),
+        automaticallyImplyLeading: false, // Oculta el botón de regreso
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar Sesión',
             onPressed: () {
               // Navega a la pantalla de login y elimina todas las rutas anteriores.
               Navigator.of(context).pushAndRemoveUntil(
@@ -88,169 +68,177 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Bienvenido, ${widget.usuario.nombreUsuario}',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            Text(
-              'Rol: ${widget.usuario.rol}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 32),
-            // --- Sección de Alertas ---
-            const Text(
-              'Resumen de Alertas',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const InventarioScreen(
-                          filtroInicial: InventarioFiltro.stockBajo,
-                        ),
-                      ),
-                    ),
-                    child: _buildAlertCard(
-                      context,
-                      'Stock Bajo',
-                      _productosConStockBajo,
-                      Icons.inventory_2_outlined,
-                      Colors.red,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const InventarioScreen(
-                          filtroInicial: InventarioFiltro.proximosAVencer,
-                        ),
-                      ),
-                    ),
-                    child: _buildAlertCard(
-                      context,
-                      'Próximos a Vencer',
-                      _lotesProximosAVencer,
-                      Icons.warning_amber_rounded,
-                      Colors.orange,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            // Botón para ver el inventario
-            BotonPrincipal(
-              texto: 'Ver Inventario',
-              onPressed: _navegarAInventarioYRecargar,
-            ),
-
-            // --- SECCIÓN DE ADMINISTRACIÓN (SOLO VISIBLE PARA ADMINS) ---
-            if (widget.usuario.rol == 'administrador') ...[
-              const SizedBox(height: 32),
-              const Divider(),
-              const SizedBox(height: 16),
-              const Text(
-                'Administración',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.manage_accounts),
-                label: const Text('Gestionar Usuarios'),
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          GestionUsuariosScreen(adminId: widget.usuario.id!),
-                    ),
-                  );
-                  _cargarAlertas(); // Recargar alertas al volver
-                },
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  foregroundColor: Colors.teal.shade700,
-                  side: BorderSide(color: Colors.teal.shade200),
-                ),
-              ),
+      body: RefreshIndicator(
+        onRefresh: _cargarAlertas,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeaderBienvenida(context),
+              const SizedBox(height: 24),
+              _buildSeccionAlertas(context),
+              const SizedBox(height: 24),
+              _buildSeccionAcciones(context, esAdmin),
             ],
-          ],
+          ),
         ),
       ),
-      // Solo muestra el botón de agregar si el usuario es administrador.
-      floatingActionButton: widget.usuario.rol == 'administrador'
-          ? FloatingActionButton(
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AgregarMedicamentoScreen(),
-                  ),
-                );
-                _cargarAlertas(); // Recargar alertas al volver
-              },
-              tooltip: 'Agregar Medicamento',
-              child: const Icon(Icons.add),
-            )
-          : null,
     );
   }
 
-  Widget _buildAlertCard(
-    BuildContext context,
-    String title,
-    int count,
-    IconData icon,
-    Color color,
-  ) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: color, size: 28),
-                const SizedBox(width: 8),
-                Text(
-                  '$count',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-              ],
+  Widget _buildHeaderBienvenida(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).colorScheme.primary,
+            Color.lerp(
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.secondary,
+              0.4,
+            )!,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '¡Bienvenido de vuelta!',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w300,
             ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            widget.usuario.nombreUsuario,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Chip(
+            avatar: Icon(
+              Icons.verified_user_outlined,
+              color: Theme.of(context).colorScheme.primary,
+              size: 18,
+            ),
+            label: Text(
+              widget.usuario.rol.toUpperCase(),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            backgroundColor: Colors.white.withOpacity(0.9),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSeccionAlertas(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Alertas Importantes',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: AlertaDashboardCard(
+                titulo: 'Stock Bajo',
+                contador: _stockBajoCount,
+                icono: Icons.warning_amber_rounded,
+                color: Colors.orange.shade700,
+                onTap: () => _navegarAInventario(InventarioFiltro.stockBajo),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: AlertaDashboardCard(
+                titulo: 'Próximos a Vencer',
+                contador: _proximosAVencerCount,
+                icono: Icons.timer_off_outlined,
+                color: Colors.red.shade700,
+                onTap: () =>
+                    _navegarAInventario(InventarioFiltro.proximosAVencer),
+              ),
             ),
           ],
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget _buildSeccionAcciones(BuildContext context, bool esAdmin) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Acciones Rápidas', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 16),
+        GridView.count(
+          crossAxisCount: 3,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          children: [
+            AccionRapidaCard(
+              titulo: 'Ver\nInventario',
+              icono: Icons.inventory_2_outlined,
+              onTap: () => _navegarAInventario(),
+            ),
+            AccionRapidaCard(
+              titulo: 'Agregar\nMedicamento',
+              icono: Icons.add_box_outlined,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const AgregarMedicamentoScreen();
+                  },
+                ),
+              ),
+            ),
+            if (esAdmin)
+              AccionRapidaCard(
+                titulo: 'Gestionar\nUsuarios',
+                icono: Icons.people_alt_outlined,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        GestionUsuariosScreen(adminId: widget.usuario.id!),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

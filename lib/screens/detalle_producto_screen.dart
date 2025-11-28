@@ -8,7 +8,6 @@ import 'package:inventario_farmacia/models/movimiento.dart';
 import 'package:inventario_farmacia/screens/agregar_lote_screen.dart'; // Verificando que la ruta sea correcta
 import 'package:inventario_farmacia/screens/editar_producto_screen.dart';
 import 'package:inventario_farmacia/screens/historial_movimientos_screen.dart';
-import 'package:inventario_farmacia/screens/inventario_screen.dart';
 
 class DetalleProductoScreen extends StatefulWidget {
   final Producto producto;
@@ -301,6 +300,33 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     );
   }
 
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 2),
+              Text(value, style: Theme.of(context).textTheme.bodyLarge),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
+      child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -327,25 +353,36 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Laboratorio: ${_productoActual.laboratorio}',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                if (_productoActual.codigo != null)
-                  Text('Código: ${_productoActual.codigo}'),
-                const SizedBox(height: 16),
-                Text(
-                  'Lotes en Inventario:',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ],
+          // --- Tarjeta de Información del Producto ---
+          Card(
+            elevation: 2,
+            margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  _buildInfoRow(
+                    Icons.business_outlined,
+                    'Laboratorio',
+                    _productoActual.laboratorio,
+                  ),
+                  if (_productoActual.codigo != null &&
+                      _productoActual.codigo!.isNotEmpty) ...[
+                    const Divider(height: 24),
+                    _buildInfoRow(
+                      Icons.qr_code_scanner_outlined,
+                      'Código de Barras',
+                      _productoActual.codigo!,
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
+          _buildSectionTitle('Lotes en Inventario'),
           Expanded(
             child: FutureBuilder<List<Lote>>(
               future: _lotesFuture,
@@ -370,47 +407,61 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
                     final esProximoAVencer = lote.fechaVencimiento.isBefore(
                       DateTime.now().add(const Duration(days: 90)),
                     );
+                    final esVencido = lote.fechaVencimiento.isBefore(
+                      DateTime.now(),
+                    );
+
                     return Card(
-                      color: esProximoAVencer ? Colors.orange.shade100 : null,
+                      color: esVencido
+                          ? Colors.red.shade100
+                          : esProximoAVencer
+                          ? Colors.orange.shade100
+                          : null,
                       margin: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 6,
                       ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
-                        title: Text('Stock: ${lote.cantidad} unidades'),
+                        contentPadding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                        title: Text(
+                          'Stock: ${lote.cantidad} unidades',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         subtitle: Text(
                           'Vence: ${lote.fechaVencimiento.day}/${lote.fechaVencimiento.month}/${lote.fechaVencimiento.year}',
                         ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () => _mostrarDialogoSalida(lote),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.teal.shade300,
-                              ),
-                              child: const Text(
-                                'Salida',
-                                style: TextStyle(color: Colors.white),
+                        trailing: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'salida') _mostrarDialogoSalida(lote);
+                            if (value == 'editar')
+                              _mostrarDialogoEditarLote(lote);
+                            if (value == 'eliminar')
+                              _mostrarDialogoEliminarLote(lote);
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'salida',
+                              child: ListTile(
+                                leading: Icon(Icons.arrow_upward),
+                                title: Text('Registrar Salida'),
                               ),
                             ),
-                            PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'editar')
-                                  _mostrarDialogoEditarLote(lote);
-                                if (value == 'eliminar')
-                                  _mostrarDialogoEliminarLote(lote);
-                              },
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                  value: 'editar',
-                                  child: Text('Editar'),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'eliminar',
-                                  child: Text('Eliminar'),
-                                ),
-                              ],
+                            const PopupMenuItem(
+                              value: 'editar',
+                              child: ListTile(
+                                leading: Icon(Icons.edit_outlined),
+                                title: Text('Ajustar Stock'),
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'eliminar',
+                              child: ListTile(
+                                leading: Icon(Icons.delete_outline),
+                                title: Text('Eliminar Lote'),
+                              ),
                             ),
                           ],
                         ),
@@ -427,7 +478,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
         onPressed: _navegarYRecargar,
         icon: const Icon(Icons.add),
         label: const Text('Añadir Lote'),
-        backgroundColor: Colors.teal,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
       ),
     );
   }

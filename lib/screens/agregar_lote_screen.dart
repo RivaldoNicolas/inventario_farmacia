@@ -101,42 +101,82 @@ class _AgregarLoteScreenState extends State<AgregarLoteScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Agregar Nuevo Lote')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
+              _buildCustomTextField(
                 controller: _cantidadController,
-                decoration: const InputDecoration(
-                  labelText: 'Cantidad del Lote',
-                ),
+                labelText: 'Cantidad del Lote',
+                icon: Icons.inventory_2_outlined,
                 keyboardType: TextInputType.number,
                 validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
               ),
               const SizedBox(height: 16),
-              ListTile(
-                title: Text(
-                  _fechaVencimiento == null
-                      ? 'Seleccionar Fecha de Vencimiento'
-                      : 'Vence: ${_fechaVencimiento!.day}/${_fechaVencimiento!.month}/${_fechaVencimiento!.year}',
-                ),
-                trailing: const Icon(Icons.calendar_today),
-                onTap: () => _seleccionarFecha(context),
-              ),
-              const Divider(),
+              _buildDatePicker(),
               const SizedBox(height: 16),
-              TextFormField(
+              _buildCustomTextField(
                 controller: _precioCompraController,
-                decoration: const InputDecoration(
-                  labelText: 'Precio de Compra (Opcional)',
-                ),
+                labelText: 'Precio de Compra (Opcional)',
+                icon: Icons.attach_money_outlined,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 32),
               BotonPrincipal(texto: 'Guardar Lote', onPressed: _guardarLote),
+              const SizedBox(height: 16),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Widget reutilizable para los campos de texto con el nuevo diseño
+  Widget _buildCustomTextField({
+    required TextEditingController controller,
+    required String labelText,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surface,
+      ),
+      keyboardType: keyboardType,
+      validator: validator,
+    );
+  }
+
+  // Widget para el selector de fecha con el nuevo diseño
+  Widget _buildDatePicker() {
+    return InkWell(
+      onTap: () => _seleccionarFecha(context),
+      borderRadius: BorderRadius.circular(12.0),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: 'Fecha de Vencimiento',
+          prefixIcon: const Icon(Icons.calendar_today_outlined),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+          filled: true,
+          fillColor: Theme.of(context).colorScheme.surface,
+        ),
+        child: Text(
+          _fechaVencimiento == null
+              ? 'No seleccionada'
+              : '${_fechaVencimiento!.day.toString().padLeft(2, '0')}/${_fechaVencimiento!.month.toString().padLeft(2, '0')}/${_fechaVencimiento!.year}',
+          style: TextStyle(
+            color: _fechaVencimiento == null
+                ? Colors.grey.shade600
+                : Theme.of(context).textTheme.bodyLarge?.color,
+            fontSize: 16,
           ),
         ),
       ),

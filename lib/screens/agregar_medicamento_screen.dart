@@ -123,80 +123,139 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
     }
   }
 
+  // Widget reutilizable para los títulos de sección
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0, top: 8.0),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Agregar Nuevo Medicamento')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
+              // --- Sección de Información Principal ---
+              _buildSectionTitle('Información Principal'),
+              _buildCustomTextField(
                 controller: _nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del Medicamento',
-                ),
+                labelText: 'Nombre del Medicamento',
+                icon: Icons.medication_outlined,
                 validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              _buildCustomTextField(
                 controller: _laboratorioController,
-                decoration: const InputDecoration(labelText: 'Laboratorio'),
+                labelText: 'Laboratorio',
+                icon: Icons.business_outlined,
                 validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
+              const SizedBox(height: 24),
+
+              // --- Sección de Lote Inicial ---
+              _buildSectionTitle('Lote Inicial'),
+              _buildCustomTextField(
                 controller: _cantidadController,
-                decoration: const InputDecoration(
-                  labelText: 'Cantidad Inicial (Stock)',
-                ),
+                labelText: 'Cantidad Inicial (Stock)',
+                icon: Icons.inventory_2_outlined,
                 keyboardType: TextInputType.number,
                 validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
               ),
               const SizedBox(height: 16),
-              // --- Selector de Fecha ---
-              ListTile(
-                title: Text(
-                  _fechaVencimiento == null
-                      ? 'Seleccionar Fecha de Vencimiento'
-                      : 'Vence: ${_fechaVencimiento!.day}/${_fechaVencimiento!.month}/${_fechaVencimiento!.year}',
-                ),
-                trailing: const Icon(Icons.calendar_today),
-                onTap: () => _seleccionarFecha(context),
-              ),
-              const Divider(),
+              _buildDatePicker(),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _codigoController,
-                decoration: const InputDecoration(
-                  labelText: 'Código de Barras (Opcional)',
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _stockMinimoController,
-                decoration: const InputDecoration(
-                  labelText: 'Stock Mínimo (Opcional)',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
+              _buildCustomTextField(
                 controller: _precioCompraController,
-                decoration: const InputDecoration(
-                  labelText: 'Precio de Compra (Opcional)',
-                ),
+                labelText: 'Precio de Compra (Opcional)',
+                icon: Icons.attach_money_outlined,
                 keyboardType: TextInputType.number,
               ),
+              const SizedBox(height: 24),
+
+              // --- Sección de Datos Adicionales ---
+              _buildSectionTitle('Datos Adicionales'),
+              _buildCustomTextField(
+                controller: _codigoController,
+                labelText: 'Código de Barras (Opcional)',
+                icon: Icons.qr_code_scanner_outlined,
+              ),
+              const SizedBox(height: 16),
+              _buildCustomTextField(
+                controller: _stockMinimoController,
+                labelText: 'Stock Mínimo (Opcional)',
+                icon: Icons.warning_amber_rounded,
+                keyboardType: TextInputType.number,
+              ),
+
               const SizedBox(height: 32),
               BotonPrincipal(
                 texto: 'Guardar Medicamento',
                 onPressed: _guardarMedicamento,
               ),
+              const SizedBox(height: 16),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Widget reutilizable para los campos de texto con el nuevo diseño
+  Widget _buildCustomTextField({
+    required TextEditingController controller,
+    required String labelText,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surface,
+      ),
+      keyboardType: keyboardType,
+      validator: validator,
+    );
+  }
+
+  // Widget para el selector de fecha con el nuevo diseño
+  Widget _buildDatePicker() {
+    return InkWell(
+      onTap: () => _seleccionarFecha(context),
+      borderRadius: BorderRadius.circular(12.0),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: 'Fecha de Vencimiento',
+          prefixIcon: const Icon(Icons.calendar_today_outlined),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+          filled: true,
+          fillColor: Theme.of(context).colorScheme.surface,
+        ),
+        child: Text(
+          _fechaVencimiento == null
+              ? 'No seleccionada'
+              : '${_fechaVencimiento!.day.toString().padLeft(2, '0')}/${_fechaVencimiento!.month.toString().padLeft(2, '0')}/${_fechaVencimiento!.year}',
+          style: TextStyle(
+            color: _fechaVencimiento == null
+                ? Colors.grey.shade600
+                : Theme.of(context).textTheme.bodyLarge?.color,
+            fontSize: 16,
           ),
         ),
       ),

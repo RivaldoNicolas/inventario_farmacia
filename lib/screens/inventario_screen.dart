@@ -127,9 +127,9 @@ class _InventarioScreenState extends State<InventarioScreen> {
         title: Text(
           widget.filtroInicial == null
               ? 'Inventario General'
-              : widget.filtroInicial == InventarioFiltro.stockBajo
-              ? 'Productos con Stock Bajo'
-              : 'Lotes Próximos a Vencer',
+              : widget.filtroInicial == InventarioFiltro.proximosAVencer
+              ? 'Lotes Próximos a Vencer'
+              : 'Productos con Stock Bajo',
         ),
       ),
       body: Column(
@@ -140,10 +140,25 @@ class _InventarioScreenState extends State<InventarioScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                labelText: 'Buscar por nombre, laboratorio o código',
-                prefixIcon: const Icon(Icons.search),
+                hintText: 'Buscar por nombre, laboratorio o código',
+                hintStyle: TextStyle(color: Colors.grey.shade600),
+                prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  ),
                 ),
               ),
             ),

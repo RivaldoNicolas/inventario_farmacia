@@ -68,38 +68,36 @@ class _EditarProductoScreenState extends State<EditarProductoScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Editar Producto')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
+              _buildCustomTextField(
                 controller: _nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del Medicamento',
-                ),
+                labelText: 'Nombre del Medicamento',
+                icon: Icons.medication_outlined,
                 validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              _buildCustomTextField(
                 controller: _laboratorioController,
-                decoration: const InputDecoration(labelText: 'Laboratorio'),
+                labelText: 'Laboratorio',
+                icon: Icons.business_outlined,
                 validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              _buildCustomTextField(
                 controller: _codigoController,
-                decoration: const InputDecoration(
-                  labelText: 'Código de Barras (Opcional)',
-                ),
+                labelText: 'Código de Barras (Opcional)',
+                icon: Icons.qr_code_scanner_outlined,
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              _buildCustomTextField(
                 controller: _stockMinimoController,
-                decoration: const InputDecoration(
-                  labelText: 'Stock Mínimo (Opcional)',
-                ),
+                labelText: 'Stock Mínimo (Opcional)',
+                icon: Icons.warning_amber_rounded,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 32),
@@ -107,10 +105,33 @@ class _EditarProductoScreenState extends State<EditarProductoScreen> {
                 texto: 'Guardar Cambios',
                 onPressed: _guardarCambios,
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  // Widget reutilizable para los campos de texto con el nuevo diseño
+  Widget _buildCustomTextField({
+    required TextEditingController controller,
+    required String labelText,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surface,
+      ),
+      keyboardType: keyboardType,
+      validator: validator,
     );
   }
 

@@ -5,11 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/usuario_dao.dart';
 import 'package:inventario_farmacia/models/usuario.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart'; // Importar sqflite_common_ffi
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/date_symbol_data_local.dart'; // Import para inicializar el formato de fecha
 import 'package:inventario_farmacia/screens/login_screen.dart';
 
 void main() async {
   // Aseguramos la inicialización de Flutter antes de usar los DAOs
   WidgetsFlutterBinding.ensureInitialized();
+
+  await initializeDateFormatting(
+    'es_ES',
+    null,
+  ); // Inicializa el formato para español
 
   // SOLUCIÓN DEFINITIVA: Inicializar sqflite para plataformas de escritorio
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -68,15 +75,44 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Inventario Farmacia',
       debugShowCheckedModeBanner: false, // Oculta la cinta de "Debug"
+      // --- TEMA MODERNO Y FUTURISTA ---
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        fontFamily: 'Poppins', // Fuente principal de la app
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1E88E5), // Nuevo azul primario
+          primary: const Color(0xFF1E88E5),
+          secondary: const Color(0xFF00C853), // Nuevo verde de acento
+          background: const Color(0xFFF7F7F7),
+          surface: Colors.white,
+          onPrimary: Colors.white,
+          onSecondary: Colors.white,
+          onBackground: const Color(0xFF0B2545), // Color de texto principal
+          onError: Colors.white,
+        ),
         useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.teal,
-          foregroundColor: Colors.white,
-          elevation: 4,
+        scaffoldBackgroundColor: const Color(0xFFF7F7F7),
+        appBarTheme: AppBarTheme(
+          backgroundColor: const Color(0xFF1E88E5), // Usamos el nuevo azul
+          foregroundColor: Colors.white, // Texto e iconos blancos
+          elevation: 2,
+          centerTitle: true,
+          titleTextStyle: const TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 20,
+            fontWeight: FontWeight.w600, // SemiBold
+          ),
         ),
       ),
+      // --- CONFIGURACIÓN DE IDIOMA PARA LA APP ---
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', 'ES'), // Español
+        Locale('en', 'US'), // Inglés (Opcional)
+      ],
       home:
           const LoginScreen(), // Establecemos la pantalla de login como la inicial.
     );
