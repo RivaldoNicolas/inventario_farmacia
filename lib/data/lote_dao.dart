@@ -42,7 +42,6 @@ class LoteDao {
   }
 
   /// --- MÉTODOS PARA EL DASHBOARD ---
-
   /// Cuenta la cantidad de productos distintos cuyo stock total está por debajo del mínimo.
   Future<int> contarProductosConStockBajo() async {
     final db = await dbHelper.database;
@@ -73,8 +72,9 @@ class LoteDao {
     final db = await dbHelper.database;
     final fechaLimite = DateTime.now().add(Duration(days: dias));
 
-    // Esta consulta cuenta los productos únicos (DISTINCT) que tienen al menos
-    // un lote cuya fecha de vencimiento es anterior a la fecha límite.
+    // CORRECCIÓN: La consulta ahora se basa en la tabla `lotes`, que es la
+    // fuente de verdad del inventario. Contamos los productos distintos (DISTINCT)
+    // que tienen al menos un lote cuya fecha de vencimiento es anterior a la fecha límite.
     final result = await db.rawQuery(
       '''
       SELECT COUNT(DISTINCT productoId) as count

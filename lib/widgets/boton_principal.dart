@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
+// Widget personalizado para el botón principal con estilo consistente
 class BotonPrincipal extends StatelessWidget {
   final String texto;
   final VoidCallback onPressed;
-
+  // Constructor que recibe el texto y la acción al presionar
   const BotonPrincipal({
     super.key,
     required this.texto,
     required this.onPressed,
   });
-
+  // Método que construye el widget
   @override
   Widget build(BuildContext context) {
     return SizedBox(

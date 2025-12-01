@@ -14,6 +14,7 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+// Estado del LoginScreen
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   // Clave para identificar y validar nuestro formulario.
@@ -41,7 +42,9 @@ class _LoginScreenState extends State<LoginScreen>
       final password = _passwordController.text;
 
       // Buscamos al usuario en la base de datos.
-      final usuario = await _usuarioDao.obtenerPorNombreUsuario(nombreUsuario);
+      final Usuario? usuario = await _usuarioDao.obtenerPorNombreUsuario(
+        nombreUsuario,
+      );
 
       if (usuario != null) {
         // Si el usuario existe, hasheamos la contraseña ingresada para compararla.
@@ -75,6 +78,7 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  // Inicializa el estado y configura la animación
   @override
   void initState() {
     super.initState();
@@ -95,6 +99,7 @@ class _LoginScreenState extends State<LoginScreen>
     _animationController.forward();
   }
 
+  // Liberamos los recursos del controlador de animación
   @override
   void dispose() {
     // Liberamos los recursos de los controladores para evitar fugas de memoria.
@@ -104,6 +109,7 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
+  // Construye la interfaz del LoginScreen
   @override
   Widget build(BuildContext context) {
     return Scaffold(

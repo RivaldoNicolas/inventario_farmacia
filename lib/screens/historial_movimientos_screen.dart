@@ -3,6 +3,7 @@ import 'package:inventario_farmacia/data/movimiento_dao.dart';
 import 'package:inventario_farmacia/models/movimiento.dart';
 import 'package:intl/intl.dart'; // Para formatear fechas
 
+//Pantalla para mostrar el historial de movimientos de un producto
 class HistorialMovimientosScreen extends StatefulWidget {
   final int productoId;
   final String productoNombre;
@@ -18,6 +19,7 @@ class HistorialMovimientosScreen extends StatefulWidget {
       _HistorialMovimientosScreenState();
 }
 
+//Estados de la pantalla de historial de movimientos
 class _HistorialMovimientosScreenState
     extends State<HistorialMovimientosScreen> {
   final _movimientoDao = MovimientoDao();
@@ -29,6 +31,7 @@ class _HistorialMovimientosScreenState
     _movimientosFuture = _movimientoDao.obtenerPorProducto(widget.productoId);
   }
 
+  //Construye la interfaz de historial de movimientos
   @override
   Widget build(BuildContext context) {
     return Scaffold(

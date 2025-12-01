@@ -6,6 +6,7 @@ import 'package:inventario_farmacia/models/lote.dart';
 
 import '../widgets/boton_principal.dart';
 
+//Pantalla para agregar un nuevo lote al inventario
 class AgregarLoteScreen extends StatefulWidget {
   final int productoId;
 
@@ -15,6 +16,7 @@ class AgregarLoteScreen extends StatefulWidget {
   State<AgregarLoteScreen> createState() => _AgregarLoteScreenState();
 }
 
+//Estados de la pantalla de agregar lote
 class _AgregarLoteScreenState extends State<AgregarLoteScreen> {
   final _formKey = GlobalKey<FormState>();
 
@@ -96,6 +98,7 @@ class _AgregarLoteScreenState extends State<AgregarLoteScreen> {
     }
   }
 
+  // Construye la interfaz de la pantalla de agregar lote
   @override
   Widget build(BuildContext context) {
     return Scaffold(

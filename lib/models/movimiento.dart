@@ -1,3 +1,4 @@
+/// Modelo para representar un movimiento de inventario
 class Movimiento {
   final int? id;
   final int productoId;
@@ -6,7 +7,7 @@ class Movimiento {
   final int cantidad;
   final DateTime fecha;
   final String? motivo;
-
+  // Motivo opcional para el movimiento (por ejemplo, razón de ajuste)
   Movimiento({
     this.id,
     required this.productoId,
@@ -16,6 +17,7 @@ class Movimiento {
     this.motivo,
   });
 
+  // Convierte el objeto Movimiento a un mapa para la base de datos.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -27,6 +29,7 @@ class Movimiento {
     };
   }
 
+  // Crea un objeto Movimiento a partir de un mapa de la base de datos.
   factory Movimiento.fromMap(Map<String, dynamic> map) {
     return Movimiento(
       id: map['id'],

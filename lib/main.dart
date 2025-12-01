@@ -67,6 +67,7 @@ void main() async {
   runApp(const MyApp()); // El punto de entrada de la aplicación
 }
 
+// Clase principal de la aplicación
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 

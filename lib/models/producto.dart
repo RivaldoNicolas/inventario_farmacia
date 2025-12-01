@@ -7,6 +7,7 @@ class Producto {
   final String? descripcion;
   final int? stockMinimo;
 
+  /// Constructor de la clase Producto.
   Producto({
     this.id,
     required this.nombre,

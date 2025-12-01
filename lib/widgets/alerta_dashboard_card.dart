@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
+//Tarjeta de alerta para el dashboard
 class AlertaDashboardCard extends StatelessWidget {
   final String titulo;
   final int contador;
   final IconData icono;
   final Color color;
   final VoidCallback onTap;
-
+  //Constructor de la tarjeta de alerta
   const AlertaDashboardCard({
     super.key,
     required this.titulo,
@@ -16,6 +17,7 @@ class AlertaDashboardCard extends StatelessWidget {
     required this.onTap,
   });
 
+  //Construye la tarjeta de alerta para el dashboard
   @override
   Widget build(BuildContext context) {
     return InkWell(

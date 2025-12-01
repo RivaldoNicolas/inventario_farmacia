@@ -6,13 +6,14 @@ class Usuario {
   final String passwordHash; // NUNCA guardamos la contraseña en texto plano.
   final String rol; // 'administrador' o 'personal'
 
+  // Constructor para crear un objeto Usuario.
   Usuario({
     this.id,
     required this.nombreUsuario,
     required this.passwordHash,
     required this.rol,
   });
-
+  // Convierte un objeto Usuario a un mapa para almacenamiento en la base de datos.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -22,6 +23,7 @@ class Usuario {
     };
   }
 
+  // Crea un objeto Usuario a partir de un mapa obtenido de la base de datos.
   factory Usuario.fromMap(Map<String, dynamic> map) {
     return Usuario(
       id: map['id'],

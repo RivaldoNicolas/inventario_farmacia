@@ -4,6 +4,7 @@ import 'package:inventario_farmacia/models/usuario.dart';
 import 'package:inventario_farmacia/screens/crear_usuario_screen.dart';
 import 'package:inventario_farmacia/screens/editar_usuario_screen.dart';
 
+//Pantalla para la gestión de usuarios
 class GestionUsuariosScreen extends StatefulWidget {
   final int adminId; // ID del admin actual para no mostrarlo en la lista
 
@@ -13,22 +14,25 @@ class GestionUsuariosScreen extends StatefulWidget {
   State<GestionUsuariosScreen> createState() => _GestionUsuariosScreenState();
 }
 
+//Estados de la pantalla de gestión de usuarios
 class _GestionUsuariosScreenState extends State<GestionUsuariosScreen> {
   final _usuarioDao = UsuarioDao();
   late Future<List<Usuario>> _usuariosFuture;
-
+  //Inicializa el estado
   @override
   void initState() {
     super.initState();
     _cargarUsuarios();
   }
 
+  // Carga la lista de usuarios desde la base de datos
   void _cargarUsuarios() {
     setState(() {
       _usuariosFuture = _usuarioDao.obtenerTodos();
     });
   }
 
+  // Navega a la pantalla de creación de usuario
   void _navegarACrearUsuario() async {
     await Navigator.push(
       context,
@@ -38,6 +42,7 @@ class _GestionUsuariosScreenState extends State<GestionUsuariosScreen> {
     _cargarUsuarios();
   }
 
+  // Navega a la pantalla de edición de usuario
   void _navegarAEditarUsuario(Usuario usuario) async {
     await Navigator.push(
       context,
@@ -49,6 +54,7 @@ class _GestionUsuariosScreenState extends State<GestionUsuariosScreen> {
     _cargarUsuarios();
   }
 
+  // Muestra un diálogo para confirmar la eliminación de un usuario
   void _mostrarDialogoEliminar(Usuario usuario) {
     showDialog(
       context: context,
@@ -76,6 +82,7 @@ class _GestionUsuariosScreenState extends State<GestionUsuariosScreen> {
     );
   }
 
+  //Construye la interfaz de la pantalla de gestión de usuarios
   @override
   Widget build(BuildContext context) {
     return Scaffold(

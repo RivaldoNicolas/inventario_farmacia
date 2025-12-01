@@ -6,6 +6,7 @@ import 'package:inventario_farmacia/data/usuario_dao.dart';
 import 'package:inventario_farmacia/models/usuario.dart';
 import 'package:inventario_farmacia/widgets/boton_principal.dart';
 
+//Pantalla para crear un nuevo usuario
 class CrearUsuarioScreen extends StatefulWidget {
   const CrearUsuarioScreen({super.key});
 
@@ -13,6 +14,7 @@ class CrearUsuarioScreen extends StatefulWidget {
   State<CrearUsuarioScreen> createState() => _CrearUsuarioScreenState();
 }
 
+//Estados de la pantalla de creación de usuario
 class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usuarioController = TextEditingController();
@@ -20,7 +22,7 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
   String _rolSeleccionado = 'personal'; // Rol por defecto
 
   final _usuarioDao = UsuarioDao();
-
+  // Función para crear un nuevo usuario
   void _crearUsuario() async {
     if (_formKey.currentState!.validate()) {
       final nombreUsuario = _usuarioController.text;
@@ -64,6 +66,7 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
     }
   }
 
+  // Construye la interfaz de usuario
   @override
   Widget build(BuildContext context) {
     return Scaffold(

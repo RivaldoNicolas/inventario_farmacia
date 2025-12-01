@@ -5,6 +5,7 @@ import 'package:inventario_farmacia/data/usuario_dao.dart';
 import 'package:inventario_farmacia/models/usuario.dart';
 import 'package:inventario_farmacia/widgets/boton_principal.dart';
 
+//Pantalla para editar un usuario existente
 class EditarUsuarioScreen extends StatefulWidget {
   final Usuario usuario;
 
@@ -14,19 +15,21 @@ class EditarUsuarioScreen extends StatefulWidget {
   State<EditarUsuarioScreen> createState() => _EditarUsuarioScreenState();
 }
 
+//Estados de la pantalla de edición de usuario
 class _EditarUsuarioScreenState extends State<EditarUsuarioScreen> {
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   late String _rolSeleccionado;
 
   final _usuarioDao = UsuarioDao();
-
+  //Inicializa el estado
   @override
   void initState() {
     super.initState();
     _rolSeleccionado = widget.usuario.rol;
   }
 
+  // Guarda los cambios realizados al usuario
   void _guardarCambios() async {
     if (_formKey.currentState!.validate()) {
       String nuevoPasswordHash = widget.usuario.passwordHash;
@@ -57,6 +60,7 @@ class _EditarUsuarioScreenState extends State<EditarUsuarioScreen> {
     }
   }
 
+  // Construye la interfaz de usuario
   @override
   Widget build(BuildContext context) {
     return Scaffold(

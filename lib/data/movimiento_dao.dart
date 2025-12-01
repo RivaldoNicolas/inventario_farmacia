@@ -1,6 +1,7 @@
 import 'package:inventario_farmacia/models/movimiento.dart';
 import 'base_datos.dart';
 
+/// Data Access Object (DAO) para manejar las operaciones de la tabla de movimientos.
 class MovimientoDao {
   final dbHelper = DatabaseHelper.instance;
 

@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
+//Tarjeta de acción rápida reutilizable
 class AccionRapidaCard extends StatelessWidget {
   final String titulo;
   final IconData icono;
   final VoidCallback onTap;
-
+  //Constructor de la tarjeta de acción rápida
   const AccionRapidaCard({
     super.key,
     required this.titulo,
     required this.icono,
     required this.onTap,
   });
-
+  //Construye la tarjeta de acción rápida
   @override
   Widget build(BuildContext context) {
     return InkWell(

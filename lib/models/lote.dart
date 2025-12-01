@@ -7,7 +7,7 @@ class Lote {
   final DateTime fechaIngreso;
   final DateTime fechaVencimiento;
   final double? precioCompra;
-
+  // Constructor de la clase.
   Lote({
     this.id,
     required this.productoId,
@@ -17,6 +17,7 @@ class Lote {
     this.precioCompra,
   });
 
+  // Convierte el objeto Lote a un mapa para la base de datos.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -28,6 +29,7 @@ class Lote {
     };
   }
 
+  // Crea un objeto Lote a partir de un mapa de la base de datos.
   factory Lote.fromMap(Map<String, dynamic> map) {
     return Lote(
       id: map['id'],

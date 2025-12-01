@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/screens/inventario_screen.dart';
 
+// Tarjeta personalizada para mostrar cada ítem del inventario
 class CardInventario extends StatelessWidget {
   final ProductoInventario item;
   final VoidCallback onTap;
 
   const CardInventario({super.key, required this.item, required this.onTap});
-
+  // Construye la tarjeta del inventario
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -83,12 +84,13 @@ class CardInventario extends StatelessWidget {
   }
 }
 
+// Indicador visual del stock total del producto
 class _StockBadge extends StatelessWidget {
   final int stockTotal;
   final bool tieneStockBajo;
 
   const _StockBadge({required this.stockTotal, required this.tieneStockBajo});
-
+  // Construye el indicador de stock
   @override
   Widget build(BuildContext context) {
     final Color color;

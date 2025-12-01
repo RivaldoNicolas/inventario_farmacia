@@ -26,12 +26,12 @@ class DatabaseHelper {
   Future<Database> _initDB() async {
     // Obtenemos la ruta donde se guardará el archivo de la base de datos.
     String path = join(await getDatabasesPath(), 'farmacia_inventario_v2.db');
-
     // Abrimos la base de datos. Si no existe, `_createDB` se ejecutará.
     return await openDatabase(
       path,
       version: 3, // ¡IMPORTANTE! Incrementamos la versión de la BD a 3.
       onCreate: _createDB,
+      onConfigure: _onConfigure,
       onUpgrade: _onUpgrade, // Añadimos el manejador de actualizaciones.
     );
   }
@@ -55,6 +55,12 @@ class DatabaseHelper {
         )
       ''');
     }
+  }
+
+  // Este método se llama cuando la base de datos se abre.
+  // Es el lugar perfecto para habilitar características como las claves foráneas.
+  Future<void> _onConfigure(Database db) async {
+    await db.execute('PRAGMA foreign_keys = ON');
   }
 
   // Método que se ejecuta solo la primera vez que se crea la base de datos.

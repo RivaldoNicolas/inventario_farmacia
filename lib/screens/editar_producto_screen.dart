@@ -3,6 +3,7 @@ import 'package:inventario_farmacia/data/producto_dao.dart';
 import 'package:inventario_farmacia/models/producto.dart';
 import 'package:inventario_farmacia/widgets/boton_principal.dart';
 
+//Pantalla para editar un producto existente
 class EditarProductoScreen extends StatefulWidget {
   final Producto producto;
 
@@ -12,6 +13,7 @@ class EditarProductoScreen extends StatefulWidget {
   State<EditarProductoScreen> createState() => _EditarProductoScreenState();
 }
 
+//Estados de la pantalla de edición de producto
 class _EditarProductoScreenState extends State<EditarProductoScreen> {
   final _formKey = GlobalKey<FormState>();
 
@@ -22,7 +24,7 @@ class _EditarProductoScreenState extends State<EditarProductoScreen> {
   late TextEditingController _stockMinimoController;
 
   final _productoDao = ProductoDao();
-
+  //Inicializa el estado
   @override
   void initState() {
     super.initState();
@@ -37,6 +39,7 @@ class _EditarProductoScreenState extends State<EditarProductoScreen> {
     );
   }
 
+  //Guarda los cambios realizados en el producto
   void _guardarCambios() async {
     if (_formKey.currentState!.validate()) {
       // Creamos un nuevo objeto Producto con los datos actualizados
@@ -63,6 +66,7 @@ class _EditarProductoScreenState extends State<EditarProductoScreen> {
     }
   }
 
+  //Construye la interfaz de edición de producto
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,6 +139,7 @@ class _EditarProductoScreenState extends State<EditarProductoScreen> {
     );
   }
 
+  //Limpia los controladores al salir de la pantalla
   @override
   void dispose() {
     // Limpiamos los controladores al salir de la pantalla

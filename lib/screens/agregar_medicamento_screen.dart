@@ -7,6 +7,7 @@ import 'package:inventario_farmacia/models/movimiento.dart';
 import 'package:inventario_farmacia/models/producto.dart';
 import 'package:inventario_farmacia/widgets/boton_principal.dart';
 
+//Pantalla para agregar un nuevo medicamento al inventario
 class AgregarMedicamentoScreen extends StatefulWidget {
   const AgregarMedicamentoScreen({super.key});
 
@@ -15,6 +16,7 @@ class AgregarMedicamentoScreen extends StatefulWidget {
       _AgregarMedicamentoScreenState();
 }
 
+//Estados de la pantalla de agregar medicamento
 class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
   final _formKey = GlobalKey<FormState>();
 
@@ -102,7 +104,7 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
         );
         await _movimientoDao.insertar(movimiento);
 
-        // 5. Mostrar confirmación y volver a la pantalla anterior
+        // 6. Mostrar confirmación y volver a la pantalla anterior
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Medicamento guardado con éxito.'),
@@ -136,6 +138,7 @@ class _AgregarMedicamentoScreenState extends State<AgregarMedicamentoScreen> {
     );
   }
 
+  // Construye la sección de bienvenida del usuario
   @override
   Widget build(BuildContext context) {
     return Scaffold(

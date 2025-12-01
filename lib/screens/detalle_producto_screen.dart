@@ -5,10 +5,11 @@ import 'package:inventario_farmacia/data/producto_dao.dart';
 import 'package:inventario_farmacia/models/lote.dart';
 import 'package:inventario_farmacia/models/producto.dart';
 import 'package:inventario_farmacia/models/movimiento.dart';
-import 'package:inventario_farmacia/screens/agregar_lote_screen.dart'; // Verificando que la ruta sea correcta
+import 'package:inventario_farmacia/screens/agregar_lote_screen.dart';
 import 'package:inventario_farmacia/screens/editar_producto_screen.dart';
 import 'package:inventario_farmacia/screens/historial_movimientos_screen.dart';
 
+// Pantalla de Detalle del Producto con gestión de lotes y movimientos
 class DetalleProductoScreen extends StatefulWidget {
   final Producto producto;
 
@@ -18,13 +19,14 @@ class DetalleProductoScreen extends StatefulWidget {
   State<DetalleProductoScreen> createState() => _DetalleProductoScreenState();
 }
 
+// Estados de la pantalla de detalle del producto
 class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
   final _loteDao = LoteDao();
   final _productoDao = ProductoDao();
   final _movimientoDao = MovimientoDao();
   late Producto _productoActual;
   late Future<List<Lote>> _lotesFuture;
-
+  // Inicializa el estado y carga los lotes del producto
   @override
   void initState() {
     super.initState();
@@ -32,6 +34,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     _cargarLotes();
   }
 
+  // Carga los lotes del producto desde la base de datos
   void _cargarLotes() {
     setState(() {
       // Ordenamos por fecha de vencimiento (FEFO)
@@ -46,6 +49,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     });
   }
 
+  // Navega a la pantalla de agregar lote y recarga la lista al regresar
   void _navegarYRecargar() async {
     final resultado = await Navigator.push(
       context,
@@ -61,6 +65,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     }
   }
 
+  // Navega a la pantalla de edición de producto y recarga la información al regresar
   void _navegarAEditarProducto() async {
     final resultado = await Navigator.push(
       context,
@@ -79,6 +84,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     }
   }
 
+  // Navega a la pantalla de historial de movimientos del producto
   void _navegarAHistorial() {
     Navigator.push(
       context,
@@ -91,6 +97,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     );
   }
 
+  // Muestra un diálogo para registrar la salida de stock de un lote
   void _mostrarDialogoSalida(Lote lote) {
     final cantidadController = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -143,6 +150,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     );
   }
 
+  // Registra la salida de stock de un lote
   void _registrarSalida(Lote lote, int cantidadSalida) async {
     lote.cantidad -= cantidadSalida;
 
@@ -174,6 +182,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     _cargarLotes();
   }
 
+  // Muestra un diálogo para confirmar la eliminación del producto
   void _mostrarDialogoEliminarProducto() {
     showDialog(
       context: context,
@@ -196,7 +205,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
                   backgroundColor: Colors.green,
                 ),
               );
-              // Volvemos a la pantalla de inventario
+              // Volvemos a la pantalla principal, cerrando todo lo intermedio.
               Navigator.of(context).popUntil((route) => route.isFirst);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -207,6 +216,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     );
   }
 
+  // Muestra un diálogo para ajustar la cantidad de un lote
   void _mostrarDialogoEditarLote(Lote lote) {
     final cantidadController = TextEditingController(
       text: lote.cantidad.toString(),
@@ -265,6 +275,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     );
   }
 
+  // Muestra un diálogo para confirmar la eliminación de un lote
   void _mostrarDialogoEliminarLote(Lote lote) {
     showDialog(
       context: context,
@@ -300,6 +311,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     );
   }
 
+  // Construye una fila de información con un ícono, etiqueta y valor
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,6 +332,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     );
   }
 
+  // Construye el título de una sección
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
@@ -327,6 +340,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
     );
   }
 
+  // Construye el título de una sección
   @override
   Widget build(BuildContext context) {
     return Scaffold(

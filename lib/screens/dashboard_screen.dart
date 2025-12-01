@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inventario_farmacia/data/lote_dao.dart';
 import 'package:inventario_farmacia/models/inventario_filtro.dart';
-import 'package:inventario_farmacia/models/usuario.dart'; // Asegúrate que la ruta sea correcta
+import 'package:inventario_farmacia/models/usuario.dart';
 import 'package:inventario_farmacia/screens/agregar_medicamento_screen.dart';
 import 'package:inventario_farmacia/screens/inventario_screen.dart';
 import 'package:inventario_farmacia/screens/login_screen.dart';
@@ -9,6 +9,7 @@ import 'package:inventario_farmacia/screens/gestion_usuarios_screen.dart';
 import 'package:inventario_farmacia/widgets/accion_rapida_card.dart';
 import 'package:inventario_farmacia/widgets/alerta_dashboard_card.dart';
 
+//Pantalla principal de Dashboard despues del Login
 class DashboardScreen extends StatefulWidget {
   final Usuario usuario;
 
@@ -18,6 +19,7 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
+//Estados del dashboard
 class _DashboardScreenState extends State<DashboardScreen> {
   final LoteDao _loteDao = LoteDao();
   int _stockBajoCount = 0;
@@ -29,7 +31,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _cargarAlertas();
   }
 
+  //Carga las alertas de stock bajo y productos próximos a vencer
   Future<void> _cargarAlertas() async {
+    print("--- Recargando alertas del Dashboard ---"); // Log para depuración
     final stockBajo = await _loteDao.contarProductosConStockBajo();
     final proximosAVencer = await _loteDao.contarProductosProximosAVencer(90);
     if (mounted) {
@@ -40,15 +44,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  void _navegarAInventario([InventarioFiltro? filtro]) {
-    Navigator.push(
+  //Navega a la pantalla de inventario con un filtro opcional
+  void _navegarAInventario([InventarioFiltro? filtro]) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => InventarioScreen(filtroInicial: filtro),
       ),
-    ).then((_) => _cargarAlertas());
+    );
+    _cargarAlertas();
   }
 
+  //Construye la interfaz del dashboard
   @override
   Widget build(BuildContext context) {
     final esAdmin = widget.usuario.rol == 'administrador';
@@ -91,6 +98,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // Construye el encabezado de bienvenida con el nombre de usuario y rol
   Widget _buildHeaderBienvenida(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -157,6 +165,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // Construye la sección de alertas importantes
   Widget _buildSeccionAlertas(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,7 +179,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Expanded(
               child: AlertaDashboardCard(
-                titulo: 'Stock Bajo',
+                titulo: 'Productos bajo en Stock',
                 contador: _stockBajoCount,
                 icono: Icons.warning_amber_rounded,
                 color: Colors.orange.shade700,
@@ -180,7 +189,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: AlertaDashboardCard(
-                titulo: 'Próximos a Vencer',
+                titulo: 'Productos por Vencer',
                 contador: _proximosAVencerCount,
                 icono: Icons.timer_off_outlined,
                 color: Colors.red.shade700,
@@ -194,6 +203,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // Construye la sección de acciones rápidas
   Widget _buildSeccionAcciones(BuildContext context, bool esAdmin) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,26 +225,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
             AccionRapidaCard(
               titulo: 'Agregar\nMedicamento',
               icono: Icons.add_box_outlined,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const AgregarMedicamentoScreen();
-                  },
-                ),
-              ),
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AgregarMedicamentoScreen(),
+                  ),
+                );
+                _cargarAlertas();
+              },
             ),
             if (esAdmin)
               AccionRapidaCard(
                 titulo: 'Gestionar\nUsuarios',
                 icono: Icons.people_alt_outlined,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        GestionUsuariosScreen(adminId: widget.usuario.id!),
-                  ),
-                ),
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          GestionUsuariosScreen(adminId: widget.usuario.id!),
+                    ),
+                  );
+                  _cargarAlertas();
+                },
               ),
           ],
         ),

@@ -3,7 +3,7 @@ import 'package:inventario_farmacia/data/lote_dao.dart';
 import 'package:inventario_farmacia/data/producto_dao.dart';
 import 'package:inventario_farmacia/models/producto.dart';
 import 'package:inventario_farmacia/models/inventario_filtro.dart';
-import 'package:inventario_farmacia/screens/detalle_producto_screen.dart'; // Verificando que la ruta sea correcta
+import 'package:inventario_farmacia/screens/detalle_producto_screen.dart';
 import 'package:inventario_farmacia/widgets/card_inventario.dart';
 
 // ViewModel para combinar la información del producto y su stock total.
@@ -21,6 +21,7 @@ class ProductoInventario {
   });
 }
 
+// Pantalla de Inventario con funcionalidades de búsqueda y filtrado
 class InventarioScreen extends StatefulWidget {
   final InventarioFiltro? filtroInicial;
 
@@ -30,6 +31,7 @@ class InventarioScreen extends StatefulWidget {
   State<InventarioScreen> createState() => _InventarioScreenState();
 }
 
+// Estados de la pantalla de inventario
 class _InventarioScreenState extends State<InventarioScreen> {
   final _productoDao = ProductoDao();
   final _loteDao = LoteDao();
@@ -71,7 +73,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
         ),
       );
     }
-
+    // Filtrado inicial basado en el filtro pasado desde el dashboard
     List<ProductoInventario> inventarioFiltradoInicial = inventarioCargado;
     // Aplicamos el filtro inicial si viene del dashboard
     if (widget.filtroInicial != null) {
@@ -110,6 +112,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
     });
   }
 
+  // Inicializa el estado y carga el inventario
   @override
   void initState() {
     super.initState();
@@ -120,6 +123,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
     });
   }
 
+  // Construye la interfaz de la pantalla de inventario
   @override
   Widget build(BuildContext context) {
     return Scaffold(
